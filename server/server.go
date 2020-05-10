@@ -45,7 +45,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	logger.Info("new connection established")
 	reader := bufio.NewReader(conn)
 	var err error
-	for req, err := constructRequest(reader); err != nil; {
+	for req, err := constructRequest(*reader); err != nil; {
 
 	}
 	logger.WithError(err).Error("error received while listening to connection")
