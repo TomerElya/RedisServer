@@ -51,10 +51,8 @@ func parseStr(reader bufio.Reader) (param, error) {
 	if err != nil {
 		return param{}, err
 	}
-	if nextByte, err := reader.ReadByte(); err != nil {
+	if err := verifyCLRF(reader); err != nil {
 		return param{}, err
-	} else if nextByte != '\n' {
-		return param{}, UnexpectedToken{'\n', nextByte}.Error()
 	}
 	return param{value: string(data), messageType: str}, nil
 }
@@ -64,14 +62,41 @@ func parseNum(reader bufio.Reader) (param, error) {
 	if err != nil {
 		return param{}, err
 	}
-	if nextByte, err := reader.ReadByte(); err != nil {
+	if err := verifyCLRF(reader); err != nil {
 		return param{}, err
-	} else if nextByte != '\n' {
-		return param{}, UnexpectedToken{'\n', nextByte}.Error()
 	}
 	number, err := strconv.Atoi(string(data))
 	if err != nil {
 		return param{}, err
 	}
 	return param{value: number, messageType: str}, nil
+}
+
+func parseBlk(reader bufio.Reader) (param, error) {
+	data, err := reader.ReadBytes('\r')
+	if err != nil {
+		return param{}, err
+	}
+	length, err := strconv.Atoi(string(data))
+	if err != nil {
+		return param{}, err
+	}
+	if err := verifyCLRF(reader); err != nil {
+		return param{}, err
+	}
+	str := make([]byte, length)
+	read, err := reader.Read(str)
+	if err != nil {
+		return param{}, err
+	} else if read != length {
+
+	}
+}
+
+func verifyCLRF(reader bufio.Reader) error {
+	if nextByte, err := reader.ReadByte(); err != nil {
+		return err
+	} else if nextByte != '\n' {
+		return UnexpectedToken{'\n', nextByte}.Error()
+	}
 }
