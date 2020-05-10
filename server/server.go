@@ -10,24 +10,23 @@ type Server struct {
 	address  string
 	port     int
 	listener net.Listener
-	store    map[interface{}]interface{}
+	store    store
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, store: map[interface{}]interface{}{}}
+	return Server{address: address, port: port, store: CreateStore()}
 }
 
-func (s *Server) StartAndListen() bool {
+func (s *Server) StartAndListen() {
 	address := fmt.Sprintf("%s:%d", s.address, s.port)
 	listener, err := net.Listen("tcp", address)
 	s.listener = listener
 	if err != nil {
 		log.WithError(err).WithField("address", address).Error("listener failed to start")
-		return false
+		panic(err)
 	}
 	log.WithField("address", address).Info("listener successfully started")
-	go s.listen()
-	return true
+	s.listen()
 }
 
 func (s *Server) listen() {

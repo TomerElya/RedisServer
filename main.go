@@ -9,6 +9,6 @@ import (
 func main() {
 	log.SetOutput(os.Stdout)
 	s := server.CreateServer("localhost", 3000)
-	s.Start()
+	s.StartAndListen()
 
 }
