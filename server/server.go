@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bufio"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
@@ -40,5 +41,16 @@ func (s *Server) listen() {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	log.WithField("address", conn.RemoteAddr()).Info("new connection established")
+	logger := log.WithField("address", conn.RemoteAddr().String())
+	logger.Info("new connection established")
+	reader := bufio.NewReader(conn)
+	var err error
+	for req, err := constructRequest(reader); err != nil; {
+
+	}
+	logger.WithError(err).Error("error received while listening to connection")
+	err = conn.Close()
+	if err != nil {
+		logger.WithError(err).Error("error while trying to close connection")
+	}
 }
