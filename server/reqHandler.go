@@ -34,6 +34,7 @@ func initParserMap() map[byte]func(reader bufio.Reader) (param, error) {
 	return map[byte]func(reader bufio.Reader) (param, error){
 		str: parseStr,
 		num: parseNum,
+		blk: parseBlk,
 	}
 }
 
