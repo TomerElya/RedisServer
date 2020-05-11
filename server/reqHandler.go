@@ -60,7 +60,13 @@ func (ch *cmdHandler) initializeRequest(reqParam param) (request, error) {
 		if err := validateArrRequest(reqParam); err != nil {
 			return request{}, err
 		}
-
+		return request{action: reqParam.chainedParams[0].value, params: reqParam.chainedParams}, nil
+	case str, blk:
+		return request{action: reqParam.value, params: nil}, nil
+	case num:
+		return request{}, InvalidCommandActionError{}.Error()
+	default:
+		return request{}, UnknownMessageTypeError{}.Error()
 	}
 }
 

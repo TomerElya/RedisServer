@@ -32,3 +32,15 @@ type NoCommandActionFoundError struct{}
 func (e *NoCommandActionFoundError) Error() error {
 	return errors.New(fmt.Sprintf("Failed to parse command action"))
 }
+
+type InvalidCommandActionError struct{}
+
+func (e *InvalidCommandActionError) Error() error {
+	return errors.New(fmt.Sprintf("Unable to interpret command action from given parameter"))
+}
+
+type UnknownMessageTypeError struct{}
+
+func (e *UnknownMessageTypeError) Error() error {
+	return errors.New(fmt.Sprintf("Unrecognized message type found at beginning of value"))
+}
