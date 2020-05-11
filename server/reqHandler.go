@@ -27,14 +27,16 @@ type param struct {
 }
 
 func CreateCommandHandler() cmdHandler {
-	return cmdHandler{parserMap: initParserMap()}
+	ch := cmdHandler{}
+	ch.initParserMap()
 }
 
-func initParserMap() map[byte]func(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) initParserMap() map[byte]func(reader bufio.Reader) (param, error) {
 	return map[byte]func(reader bufio.Reader) (param, error){
-		str: parseStr,
-		num: parseNum,
-		blk: parseBlk,
+		str: ch.parseStr,
+		num: ch.parseNum,
+		blk: ch.parseBlk,
+		arr: ch.parseArr,
 	}
 }
 
@@ -47,7 +49,7 @@ func (ch *cmdHandler) constructRequest(reader bufio.Reader) (request, error) {
 
 }
 
-func parseStr(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseStr(reader bufio.Reader) (param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
 		return param{}, err
@@ -58,7 +60,7 @@ func parseStr(reader bufio.Reader) (param, error) {
 	return param{value: string(data), messageType: str}, nil
 }
 
-func parseNum(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseNum(reader bufio.Reader) (param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
 		return param{}, err
@@ -73,7 +75,7 @@ func parseNum(reader bufio.Reader) (param, error) {
 	return param{value: number, messageType: str}, nil
 }
 
-func parseBlk(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseBlk(reader bufio.Reader) (param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
 		return param{}, err
@@ -96,6 +98,33 @@ func parseBlk(reader bufio.Reader) (param, error) {
 		return param{}, err
 	}
 	return param{value: str, messageType: blk}, nil
+}
+
+func (ch *cmdHandler) parseArr(reader bufio.Reader) (param, error) {
+	data, err := reader.ReadBytes('\r')
+	if err != nil {
+		return param{}, err
+	}
+	arrSize, err := strconv.Atoi(string(data))
+	if err != nil {
+		return param{}, err
+	}
+	params := make([]param, arrSize)
+	if err := verifyLF(reader); err != nil {
+		return param{}, err
+	}
+	for i := 0; i < arrSize; i++ {
+		messageType, err := reader.ReadByte()
+		if err != nil {
+			return param{}, err
+		}
+		newParam, err := ch.parserMap[messageType](reader)
+		if err != nil {
+			return param{}, err
+		}
+		params[i] = newParam
+	}
+	return param{messageType: arr, value: params}, nil
 }
 
 func verifyLF(reader bufio.Reader) error {
