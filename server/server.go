@@ -48,7 +48,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var err error = nil
 	var req request
 	for err == nil {
-		req, err = s.cmdHandler.constructRequest(*reader)
+		req, err = s.cmdHandler.constructRequest(reader)
 		fmt.Printf("Request : %v\n", req)
 	}
 	logger.WithError(err).Error("error received while listening to connection")

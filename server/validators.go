@@ -12,7 +12,7 @@ func validateArrRequest(reqParam param) error {
 	return nil
 }
 
-func validateLF(reader bufio.Reader) error {
+func validateLF(reader *bufio.Reader) error {
 	if nextByte, err := reader.ReadByte(); err != nil {
 		return err
 	} else if nextByte != '\n' {
@@ -21,7 +21,7 @@ func validateLF(reader bufio.Reader) error {
 	return nil
 }
 
-func validateCR(reader bufio.Reader) error {
+func validateCR(reader *bufio.Reader) error {
 	if nextByte, err := reader.ReadByte(); err != nil {
 		return err
 	} else if nextByte != '\r' {
@@ -30,7 +30,7 @@ func validateCR(reader bufio.Reader) error {
 	return nil
 }
 
-func validateCLRF(reader bufio.Reader) error {
+func validateCLRF(reader *bufio.Reader) error {
 	err := validateCR(reader)
 	if err == nil {
 		err = validateLF(reader)
