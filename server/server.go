@@ -45,11 +45,17 @@ func (s *Server) handleConnection(conn net.Conn) {
 	logger := log.WithField("address", conn.RemoteAddr().String())
 	logger.Info("new connection established")
 	reader := bufio.NewReader(conn)
-	var err error
-	for req, err := s.cmdHandler.constructRequest(*reader); err != nil; {
-		fmt.Printf("%v", req)
+	var err error = nil
+	var req request
+	for err == nil {
+		req, err = s.cmdHandler.constructRequest(*reader)
+		fmt.Printf("Request : %v\n", req)
 	}
 	logger.WithError(err).Error("error received while listening to connection")
+	_, err = conn.Write([]byte(err.Error()))
+	if err != nil {
+		logger.WithError(err).Error("failed to write error to client")
+	}
 	err = conn.Close()
 	if err != nil {
 		logger.WithError(err).Error("error while trying to close connection")

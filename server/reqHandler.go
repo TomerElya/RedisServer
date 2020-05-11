@@ -47,6 +47,9 @@ func (ch *cmdHandler) constructRequest(reader bufio.Reader) (request, error) {
 	if err != nil {
 		return request{}, err
 	}
+	if _, ok := ch.parserMap[messageType]; !ok {
+		return request{}, (&UnknownMessageTypeError{}).Error()
+	}
 	param, err := ch.parserMap[messageType](reader)
 	if err != nil {
 		return request{}, err
