@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	str = 43
-	num = 58
-	blk = 36
-	arr = 42
+	str = '+'
+	num = ':'
+	blk = '$'
+	arr = '*'
 )
 
 type cmdHandler struct {
@@ -33,8 +33,8 @@ func createCommandHandler() cmdHandler {
 	return ch
 }
 
-func (ch *cmdHandler) initParserMap() map[byte]func(reader bufio.Reader) (param, error) {
-	return map[byte]func(reader bufio.Reader) (param, error){
+func (ch *cmdHandler) initParserMap() {
+	ch.parserMap = map[byte]func(reader bufio.Reader) (param, error){
 		str: ch.parseStr,
 		num: ch.parseNum,
 		blk: ch.parseBlk,
@@ -101,17 +101,7 @@ func (ch *cmdHandler) parseNum(reader bufio.Reader) (param, error) {
 }
 
 func (ch *cmdHandler) parseBlk(reader bufio.Reader) (param, error) {
-	data, err := reader.ReadBytes('\r')
-	if err != nil {
-		return param{}, err
-	}
-	length, err := strconv.Atoi(string(data))
-	if err != nil {
-		return param{}, err
-	}
-	if err := validateLF(reader); err != nil {
-		return param{}, err
-	}
+	length, err := extractNumber(reader)
 	str := make([]byte, length)
 	read, err := reader.Read(str)
 	if err != nil {
@@ -126,28 +116,46 @@ func (ch *cmdHandler) parseBlk(reader bufio.Reader) (param, error) {
 }
 
 func (ch *cmdHandler) parseArr(reader bufio.Reader) (param, error) {
-	data, err := reader.ReadBytes('\r')
-	if err != nil {
-		return param{}, err
-	}
-	arrSize, err := strconv.Atoi(string(data))
+	arrSize, err := extractNumber(reader)
 	if err != nil {
 		return param{}, err
 	}
 	params := make([]param, arrSize)
-	if err := validateLF(reader); err != nil {
-		return param{}, err
-	}
 	for i := 0; i < arrSize; i++ {
 		messageType, err := reader.ReadByte()
 		if err != nil {
 			return param{}, err
 		}
-		newParam, err := ch.parserMap[messageType](reader)
+		parsingFunction, err := ch.getParsingFunction(messageType)
+		if err != nil {
+			return param{}, err
+		}
+		newParam, err := parsingFunction(reader)
 		if err != nil {
 			return param{}, err
 		}
 		params[i] = newParam
 	}
 	return param{chainedParams: params, messageType: arr}, nil
+}
+
+func extractNumber(reader bufio.Reader) (int, error) {
+	data, err := reader.ReadBytes('\r')
+	if err != nil {
+		return 0, (&ArrayLengthExtractionError{err}).Error()
+	}
+	data = data[:len(data)-1]
+	length, err := strconv.Atoi(string(data))
+	if err != nil {
+		return 0, (&ArrayLengthExtractionError{err}).Error()
+	}
+	return length, validateLF(reader)
+}
+
+func (ch *cmdHandler) getParsingFunction(messageType byte) (func(reader bufio.Reader) (param, error), error) {
+	if function, ok := ch.parserMap[messageType]; !ok {
+		return nil, (&UnknownMessageTypeError{}).Error()
+	} else {
+		return function, nil
+	}
 }

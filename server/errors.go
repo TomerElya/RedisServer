@@ -44,3 +44,9 @@ type UnknownMessageTypeError struct{}
 func (e *UnknownMessageTypeError) Error() error {
 	return errors.New(fmt.Sprintf("Unrecognized message type found at beginning of value"))
 }
+
+type ArrayLengthExtractionError struct{ error }
+
+func (e *ArrayLengthExtractionError) Error() error {
+	return errors.New(fmt.Sprintf("failed to extract array length. error: %v", e.error))
+}
