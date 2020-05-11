@@ -4,10 +4,10 @@ import "bufio"
 
 func validateArrRequest(reqParam param) error {
 	if len(reqParam.chainedParams) < 1 {
-		return ArrayParsingError{}.Error()
+		return (&ArrayParsingError{}).Error()
 	}
 	if reqParam.chainedParams[0].messageType != str && reqParam.chainedParams[0].messageType != blk {
-		return NoCommandActionFoundError{}.Error()
+		return (&NoCommandActionFoundError{}).Error()
 	}
 	return nil
 }
@@ -16,7 +16,7 @@ func validateLF(reader bufio.Reader) error {
 	if nextByte, err := reader.ReadByte(); err != nil {
 		return err
 	} else if nextByte != '\n' {
-		return UnexpectedToken{'\n', nextByte}.Error()
+		return (&UnexpectedToken{'\n', nextByte}).Error()
 	}
 	return nil
 }
@@ -25,7 +25,7 @@ func validateCR(reader bufio.Reader) error {
 	if nextByte, err := reader.ReadByte(); err != nil {
 		return err
 	} else if nextByte != '\r' {
-		return UnexpectedToken{'\r', nextByte}.Error()
+		return (&UnexpectedToken{'\r', nextByte}).Error()
 	}
 	return nil
 }

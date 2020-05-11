@@ -64,9 +64,9 @@ func (ch *cmdHandler) initializeRequest(reqParam param) (request, error) {
 	case str, blk:
 		return request{action: reqParam.value, params: nil}, nil
 	case num:
-		return request{}, InvalidCommandActionError{}.Error()
+		return request{}, (&InvalidCommandActionError{}).Error()
 	default:
-		return request{}, UnknownMessageTypeError{}.Error()
+		return request{}, (&UnknownMessageTypeError{}).Error()
 	}
 }
 
@@ -114,7 +114,7 @@ func (ch *cmdHandler) parseBlk(reader bufio.Reader) (param, error) {
 	if err != nil {
 		return param{}, err
 	} else if read != length {
-		return param{}, MismatchingLength{read, length}.Error()
+		return param{}, (&MismatchingLength{read, length}).Error()
 	}
 	if err = validateCLRF(reader); err != nil {
 		return param{}, err
