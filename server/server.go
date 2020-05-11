@@ -16,7 +16,7 @@ type Server struct {
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, store: CreateStore(), cmdHandler: CreateCommandHandler()}
+	return Server{address: address, port: port, store: CreateStore(), cmdHandler: createCommandHandler()}
 }
 
 func (s *Server) StartAndListen() {

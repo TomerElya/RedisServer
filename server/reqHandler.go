@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	str = '+'
-	num = ':'
-	blk = '$'
-	arr = '*'
+	str = 43
+	num = 58
+	blk = 36
+	arr = 42
 )
 
 type cmdHandler struct {
@@ -27,7 +27,7 @@ type param struct {
 	chainedParams []param
 }
 
-func CreateCommandHandler() cmdHandler {
+func createCommandHandler() cmdHandler {
 	ch := cmdHandler{}
 	ch.initParserMap()
 	return ch
