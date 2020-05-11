@@ -13,12 +13,12 @@ const (
 )
 
 type cmdHandler struct {
-	parserMap map[byte]func(reader bufio.Reader) (param, error)
+	parserMap map[byte]func(reader bufio.Reader) ([]param, error)
 }
 
 type request struct {
 	action string
-	params []string
+	params []param
 }
 
 type param struct {
@@ -31,8 +31,8 @@ func CreateCommandHandler() cmdHandler {
 	ch.initParserMap()
 }
 
-func (ch *cmdHandler) initParserMap() map[byte]func(reader bufio.Reader) (param, error) {
-	return map[byte]func(reader bufio.Reader) (param, error){
+func (ch *cmdHandler) initParserMap() map[byte]func(reader bufio.Reader) ([]param, error) {
+	return map[byte]func(reader bufio.Reader) ([]param, error){
 		str: ch.parseStr,
 		num: ch.parseNum,
 		blk: ch.parseBlk,
@@ -46,85 +46,84 @@ func (ch *cmdHandler) constructRequest(reader bufio.Reader) (request, error) {
 	if err != nil {
 		return req, err
 	}
-
 }
 
-func (ch *cmdHandler) parseStr(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseStr(reader bufio.Reader) ([]param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	if err := verifyLF(reader); err != nil {
-		return param{}, err
+		return []param{}, err
 	}
-	return param{value: string(data), messageType: str}, nil
+	return []param{{value: string(data), messageType: str}}, nil
 }
 
-func (ch *cmdHandler) parseNum(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseNum(reader bufio.Reader) ([]param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	if err := verifyLF(reader); err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	number, err := strconv.Atoi(string(data))
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
-	return param{value: number, messageType: str}, nil
+	return []param{{value: number, messageType: num}}, nil
 }
 
-func (ch *cmdHandler) parseBlk(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseBlk(reader bufio.Reader) ([]param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	length, err := strconv.Atoi(string(data))
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	if err := verifyLF(reader); err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	str := make([]byte, length)
 	read, err := reader.Read(str)
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	} else if read != length {
-		return param{}, MismatchingLength{read, length}.Error()
+		return []param{}, MismatchingLength{read, length}.Error()
 	}
 	if err = verifyCLRF(reader); err != nil {
-		return param{}, err
+		return []param{}, err
 	}
-	return param{value: str, messageType: blk}, nil
+	return []param{{value: str, messageType: blk}}, nil
 }
 
-func (ch *cmdHandler) parseArr(reader bufio.Reader) (param, error) {
+func (ch *cmdHandler) parseArr(reader bufio.Reader) ([]param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	arrSize, err := strconv.Atoi(string(data))
 	if err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	params := make([]param, arrSize)
 	if err := verifyLF(reader); err != nil {
-		return param{}, err
+		return []param{}, err
 	}
 	for i := 0; i < arrSize; i++ {
 		messageType, err := reader.ReadByte()
 		if err != nil {
-			return param{}, err
+			return []param{}, err
 		}
-		newParam, err := ch.parserMap[messageType](reader)
+		newParams, err := ch.parserMap[messageType](reader)
 		if err != nil {
-			return param{}, err
+			return []param{}, err
 		}
-		params[i] = newParam
+		params = append(params, newParams...)
 	}
-	return param{messageType: arr, value: params}, nil
+	return params, nil
 }
 
 func verifyLF(reader bufio.Reader) error {
