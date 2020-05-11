@@ -12,10 +12,11 @@ type Server struct {
 	port     int
 	listener net.Listener
 	store    store
+	cmdHandler
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, store: CreateStore()}
+	return Server{address: address, port: port, store: CreateStore(), cmdHandler: CreateCommandHandler()}
 }
 
 func (s *Server) StartAndListen() {
@@ -45,8 +46,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 	logger.Info("new connection established")
 	reader := bufio.NewReader(conn)
 	var err error
-	for req, err := constructRequest(*reader); err != nil; {
-
+	for req, err := s.cmdHandler.constructRequest(*reader); err != nil; {
+		fmt.Printf("%v", req)
 	}
 	logger.WithError(err).Error("error received while listening to connection")
 	err = conn.Close()
