@@ -20,3 +20,15 @@ type MismatchingLength struct {
 func (e *MismatchingLength) Error() error {
 	return errors.New(fmt.Sprintf("Mismatching reading length. Expected : %b, read : %b\n", e.expected, e.read))
 }
+
+type ArrayParsingError struct{}
+
+func (e *ArrayParsingError) Error() error {
+	return errors.New(fmt.Sprintf("Failed to parse command action"))
+}
+
+type NoCommandActionFoundError struct{}
+
+func (e *NoCommandActionFoundError) Error() error {
+	return errors.New(fmt.Sprintf("Failed to parse command action"))
+}
