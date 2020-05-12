@@ -46,7 +46,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	logger.Info("new connection established")
 	reader := bufio.NewReader(conn)
 	var err error = nil
-	var req request
+	var req Request
 	for err == nil {
 		req, err = s.reqParser.ConstructRequest(reader)
 		if err != nil {
