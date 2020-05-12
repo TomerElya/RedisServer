@@ -8,15 +8,15 @@ import (
 )
 
 type Server struct {
-	address  string
-	port     int
-	listener net.Listener
-	store    store
-	reqParser
+	address    string
+	port       int
+	listener   net.Listener
+	reqParser  requestsParser
+	cmdHandler CommandHandler
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, store: CreateStore(), reqParser: createRequestParser()}
+	return Server{address: address, port: port, cmdHandler: CreateCommandHandler(), reqParser: createRequestParser()}
 }
 
 func (s *Server) StartAndListen() {
