@@ -12,11 +12,11 @@ type Server struct {
 	port     int
 	listener net.Listener
 	store    store
-	cmdHandler
+	reqParser
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, store: CreateStore(), cmdHandler: createCommandHandler()}
+	return Server{address: address, port: port, store: CreateStore(), reqParser: createRequestParser()}
 }
 
 func (s *Server) StartAndListen() {
@@ -48,7 +48,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var err error = nil
 	var req request
 	for err == nil {
-		req, err = s.cmdHandler.constructRequest(reader)
+		req, err = s.reqParser.constructRequest(reader)
 		if err != nil {
 
 		}
