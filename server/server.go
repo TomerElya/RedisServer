@@ -48,7 +48,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var err error = nil
 	var req request
 	for err == nil {
-		req, err = s.reqParser.constructRequest(reader)
+		req, err = s.reqParser.ConstructRequest(reader)
 		if err != nil {
 			fmt.Printf("%v\n", req)
 		}

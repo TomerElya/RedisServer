@@ -42,7 +42,7 @@ func (ch *requestsParser) initParserMap() {
 	}
 }
 
-func (ch *requestsParser) constructRequest(reader *bufio.Reader) (request, error) {
+func (ch *requestsParser) ConstructRequest(reader *bufio.Reader) (request, error) {
 	messageType, err := reader.ReadByte()
 	if err != nil {
 		return request{}, err
