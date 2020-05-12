@@ -50,7 +50,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	for err == nil {
 		req, err = s.reqParser.constructRequest(reader)
 		if err != nil {
-
+			fmt.Printf("%v\n", req)
 		}
 	}
 	logger.WithError(err).Error("error received while listening to connection")

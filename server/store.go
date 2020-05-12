@@ -1,7 +1,7 @@
 package server
 
 type store struct {
-	store map[string]interface{}
+	store map[string]string
 }
 
 func CreateStore() store {
