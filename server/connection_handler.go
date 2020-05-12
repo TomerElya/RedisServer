@@ -29,3 +29,10 @@ func (c *Client) DisconnectWithError(err error) {
 		c.logger.WithError(err).Error("error while trying to close connection")
 	}
 }
+
+func (c *Client) WriteError(err error) {
+	_, err = c.conn.Write([]byte(err.Error()))
+	if err != nil {
+		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
+	}
+}

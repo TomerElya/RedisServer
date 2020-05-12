@@ -55,3 +55,9 @@ type ErrCommandNotFound struct{ command string }
 func (e ErrCommandNotFound) Error() string {
 	return fmt.Sprintf("command %s is not a known command", e.command)
 }
+
+type ErrKeyNotFound struct{ key string }
+
+func (e ErrKeyNotFound) Error() string {
+	return fmt.Sprintf("The key ")
+}

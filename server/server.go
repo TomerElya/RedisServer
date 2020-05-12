@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bufio"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
@@ -51,6 +50,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		req, err = s.reqParser.ConstructRequest(client.reader)
 		if err != nil {
 			err = s.cmdHandler.AppendRequest(req)
+			client.WriteError(err)
 		}
 	}
 	client.DisconnectWithError(err)

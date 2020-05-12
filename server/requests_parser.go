@@ -5,21 +5,8 @@ import (
 	"strconv"
 )
 
-const (
-	str = '+'
-	num = ':'
-	blk = '$'
-	arr = '*'
-)
-
 type RequestsParser struct {
 	parserMap map[byte]func(reader *bufio.Reader) (param, error)
-}
-
-type param struct {
-	messageType   byte
-	value         string
-	chainedParams []param
 }
 
 func createRequestParser() RequestsParser {

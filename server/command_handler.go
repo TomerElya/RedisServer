@@ -1,14 +1,20 @@
 package server
 
 type CommandHandler struct {
-	incomingRequests chan Request
+	incomingRequests chan commandForm
 	stopChan         chan bool
 	store
 	commandMap map[string]func(req Request)
 }
 
+type commandForm struct {
+	commandFunc func(req Request)
+	request     Request
+	response    chan string
+}
+
 func CreateCommandHandler() CommandHandler {
-	cmdHandler := CommandHandler{incomingRequests: make(chan Request)}
+	cmdHandler := CommandHandler{incomingRequests: make(chan commandForm)}
 	return cmdHandler
 }
 
@@ -32,17 +38,13 @@ func (ch *CommandHandler) AppendRequest(req Request) error {
 
 func (ch *CommandHandler) process() {
 	select {
-	case req := <-ch.incomingRequests:
-		ch.processIncomingRequest(req)
+	case cmdForm := <-ch.incomingRequests:
+		cmdForm.commandFunc(cmdForm.request)
 	case <-ch.stopChan:
 		break
 	}
 }
 
-func (ch *CommandHandler) processIncomingRequest(req Request) {
-
-}
-
 func (ch *CommandHandler) handleGet(req Request) {
-
+	value, ok := ch.store
 }
