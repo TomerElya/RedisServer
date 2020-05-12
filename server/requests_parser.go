@@ -16,11 +16,6 @@ type RequestsParser struct {
 	parserMap map[byte]func(reader *bufio.Reader) (param, error)
 }
 
-type Request struct {
-	action string
-	params []param
-}
-
 type param struct {
 	messageType   byte
 	value         string

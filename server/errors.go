@@ -49,3 +49,9 @@ type ErrArrayLengthExtraction struct{ error }
 func (e ErrArrayLengthExtraction) Error() string {
 	return fmt.Sprintf("failed to extract array length. error: %v", e.error)
 }
+
+type ErrCommandNotFound struct{ command string }
+
+func (e ErrCommandNotFound) Error() string {
+	return fmt.Sprintf("command %s is not a known command", e.command)
+}

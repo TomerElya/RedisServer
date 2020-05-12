@@ -11,7 +11,7 @@ type Server struct {
 	address    string
 	port       int
 	listener   net.Listener
-	reqParser  requestsParser
+	reqParser  RequestsParser
 	cmdHandler CommandHandler
 }
 
@@ -44,22 +44,14 @@ func (s *Server) listen() {
 func (s *Server) handleConnection(conn net.Conn) {
 	logger := log.WithField("address", conn.RemoteAddr().String())
 	logger.Info("new connection established")
-	reader := bufio.NewReader(conn)
+	client := CreateClient(conn)
 	var err error = nil
 	var req Request
 	for err == nil {
-		req, err = s.reqParser.ConstructRequest(reader)
+		req, err = s.reqParser.ConstructRequest(client.reader)
 		if err != nil {
-			fmt.Printf("%v\n", req)
+			err = s.cmdHandler.AppendRequest(req)
 		}
 	}
-	logger.WithError(err).Error("error received while listening to connection")
-	_, err = conn.Write([]byte(err.Error()))
-	if err != nil {
-		logger.WithError(err).Error("failed to write error to client")
-	}
-	err = conn.Close()
-	if err != nil {
-		logger.WithError(err).Error("error while trying to close connection")
-	}
+	client.DisconnectWithError(err)
 }
