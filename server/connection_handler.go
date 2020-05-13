@@ -2,19 +2,24 @@ package server
 
 import (
 	"bufio"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"net"
+	"sync"
 )
 
 type Client struct {
 	conn   net.Conn
 	reader *bufio.Reader
-	logger logrus.Logger
+	logger *log.Entry
+	mutex  sync.Mutex
 }
 
 func CreateClient(conn net.Conn) Client {
-	client := Client{}
-	client.reader = bufio.NewReader(conn)
+	client := Client{
+		reader: bufio.NewReader(conn),
+		mutex:  sync.Mutex{},
+		logger: log.WithField("address", conn.RemoteAddr().String()),
+	}
 	return client
 }
 
@@ -31,6 +36,7 @@ func (c *Client) DisconnectWithError(err error) {
 }
 
 func (c *Client) WriteError(err error) {
+	c.logger.Info("new connection established")
 	_, err = c.conn.Write([]byte(err.Error()))
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")

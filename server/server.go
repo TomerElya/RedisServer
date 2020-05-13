@@ -41,8 +41,7 @@ func (s *Server) listen() {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	logger := log.WithField("address", conn.RemoteAddr().String())
-	logger.Info("new connection established")
+
 	client := CreateClient(conn)
 	var err error = nil
 	var req Request

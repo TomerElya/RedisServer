@@ -33,6 +33,7 @@ func (ch *CommandHandler) AppendRequest(req Request) error {
 	if !ok {
 		return ErrCommandNotFound{command: req.action}
 	}
+	cmdForm := commandForm{commandFunc: handlerFunc, request: req}
 
 }
 
