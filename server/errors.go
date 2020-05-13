@@ -9,7 +9,7 @@ type ErrUnexpectedToken struct {
 }
 
 func (e ErrUnexpectedToken) Error() string {
-	return fmt.Sprintf("Unexpected token : %b, expected : %b\n", e.unexpected, e.expected)
+	return fmt.Sprintf("Unexpected token : %c, expected : %c\n", e.unexpected, e.expected)
 }
 
 type ErrMismatchingLength struct {

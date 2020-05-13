@@ -34,7 +34,7 @@ func (p *Param) ToString() string {
 	case num:
 		res.WriteString(fmt.Sprintf(":%s\r\n", p.value))
 	case err1:
-		res.WriteString(fmt.Sprintf("-%s\r\n", p.value))
+		res.WriteString(fmt.Sprintf("-ERR %s\r\n", p.value))
 	}
 	return res.String()
 }

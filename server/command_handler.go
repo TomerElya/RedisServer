@@ -1,5 +1,7 @@
 package server
 
+import log "github.com/sirupsen/logrus"
+
 type CommandHandler struct {
 	stopChan chan bool
 	store    Store
@@ -15,6 +17,8 @@ func CreateCommandHandler() CommandHandler {
 }
 
 func (ch *CommandHandler) AppendRequest(req Request) {
+	log.WithField("request action", req.action).WithField("address", req.client.conn.RemoteAddr().String()).
+		Info("new request received")
 	ok := ch.store.Exists(req.action)
 	if !ok {
 		req.client.WriteError(ErrCommandNotFound{command: req.action})

@@ -47,9 +47,8 @@ func (c *Client) Disconnect(err error) {
 }
 
 func (c *Client) WriteError(err error) {
-	param := Param{value: err.Error(), messageType: err1}
-	c.logger.WithField("response", param.value).WithField("message type", param.messageType).
-		Info("writing error response to client")
+	param := Param{messageType: err1, value: err.Error()}
+	c.logger.WithError(err).Info("writing error to client")
 	err = c.write(param)
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
