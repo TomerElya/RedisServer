@@ -28,6 +28,7 @@ func CreateStore() Store {
 func (s *Store) initializeActionMap() {
 	s.actionMap = map[string]func(request StoreRequest){
 		"get": s.Get,
+		"set": s.Set,
 	}
 }
 
@@ -40,6 +41,11 @@ func (s *Store) listen() {
 	case req := <-s.IncomingRequests:
 		s.actionMap[req.action](req)
 	}
+}
+
+func (s *Store) Exists(command string) bool {
+	_, ok := s.actionMap[command]
+	return ok
 }
 
 func (s *Store) Get(request StoreRequest) {
