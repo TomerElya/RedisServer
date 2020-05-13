@@ -46,10 +46,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var req Request
 	for err == nil {
 		req, err = s.reqParser.ConstructRequest(client.reader)
-		if err != nil {
+		if err == nil {
 			req.client = client
 			go s.cmdHandler.AppendRequest(req)
 		}
 	}
-	client.DisconnectWithError(err)
+	client.Disconnect(err)
 }

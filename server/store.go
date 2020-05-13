@@ -17,11 +17,12 @@ type StoreRequest struct {
 }
 
 func CreateStore() Store {
-	return Store{
+	store := Store{
 		store:            map[string]Param{},
-		actionMap:        map[string]func(request StoreRequest){},
 		IncomingRequests: make(chan StoreRequest),
 	}
+	store.initializeActionMap()
+	return store
 }
 
 func (s *Store) initializeActionMap() {
