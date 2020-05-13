@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"strconv"
+	"strings"
 )
 
 type RequestsParser struct {
@@ -41,19 +42,22 @@ func (ch *RequestsParser) ConstructRequest(reader *bufio.Reader) (Request, error
 }
 
 func (ch *RequestsParser) initializeRequest(reqParam Param) (Request, error) {
+	var resultedRequest Request
 	switch reqParam.messageType {
 	case arr:
 		if err := validateArrRequest(reqParam); err != nil {
 			return Request{}, err
 		}
-		return Request{action: reqParam.chainedParams[0].value, params: reqParam.chainedParams}, nil
+		resultedRequest = Request{action: reqParam.chainedParams[0].value, params: reqParam.chainedParams}
 	case str, blk:
-		return Request{action: reqParam.value, params: nil}, nil
+		resultedRequest = Request{action: reqParam.value, params: nil}
 	case num:
 		return Request{}, ErrInvalidCommandAction{}
 	default:
 		return Request{}, ErrUnknownMessageType{}
 	}
+	resultedRequest.action = strings.ToLower(resultedRequest.action)
+	return resultedRequest, nil
 }
 
 func (ch *RequestsParser) parseStr(reader *bufio.Reader) (Param, error) {

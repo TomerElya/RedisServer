@@ -43,7 +43,6 @@ func (s *Store) listen() {
 			s.actionMap[req.action](req)
 		}
 	}
-
 }
 
 func (s *Store) Exists(command string) bool {
