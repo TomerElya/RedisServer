@@ -38,6 +38,6 @@ func (ch *CommandHandler) handleGet(req Request) {
 	if storeResponse.error != nil {
 		req.client.WriteError(storeResponse.error)
 	} else {
-
+		req.client.WriteResponse(storeResponse.Param)
 	}
 }

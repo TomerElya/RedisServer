@@ -54,6 +54,13 @@ func (c *Client) WriteError(err error) {
 	}
 }
 
+func (c *Client) WriteResponse(param Param) {
+	err := c.write(param)
+	if err != nil {
+		c.logger.WithError(err).Error("failed to write response to client")
+	}
+}
+
 func (c *Client) write(param Param) error {
 	if atomic.LoadInt32(&c.isConnected) != 0 {
 		return ErrConnectionClosedWrite{}
