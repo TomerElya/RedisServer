@@ -35,7 +35,7 @@ func (c *Client) Disconnect(err error) {
 		atomic.StoreInt32(&c.isConnected, 1)
 	} else {
 		c.logger.WithError(err).Error("error received while listening to connection. Disconnecting...")
-		_, err = c.conn.Write([]byte(err.Error()))
+		err = c.write(Param{value: err.Error(), messageType: err1})
 		if err != nil {
 			c.logger.WithError(err).Error("failed to write error to client while disconnecting")
 		}
@@ -48,6 +48,8 @@ func (c *Client) Disconnect(err error) {
 
 func (c *Client) WriteError(err error) {
 	param := Param{value: err.Error(), messageType: err1}
+	c.logger.WithField("response", param.value).WithField("message type", param.messageType).
+		Info("writing error response to client")
 	err = c.write(param)
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
@@ -55,6 +57,8 @@ func (c *Client) WriteError(err error) {
 }
 
 func (c *Client) WriteResponse(param Param) {
+	c.logger.WithField("response", param.value).WithField("message type", param.messageType).
+		Info("writing successful response to client")
 	err := c.write(param)
 	if err != nil {
 		c.logger.WithError(err).Error("failed to write response to client")
@@ -65,11 +69,12 @@ func (c *Client) write(param Param) error {
 	if atomic.LoadInt32(&c.isConnected) != 0 {
 		return ErrConnectionClosedWrite{}
 	}
+	paramBytes := param.ToBytes()
 	c.mutex.Lock()
-	written, err := c.conn.Write(param.ToBytes())
+	written, err := c.conn.Write(paramBytes)
 	c.mutex.Unlock()
-	if len(param.value) != written {
-		return ErrIncompleteWrite{written: written, expected: len(param.value)}
+	if len(paramBytes) != written {
+		return ErrIncompleteWrite{written: written, expected: len(paramBytes)}
 	}
 	return err
 }

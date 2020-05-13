@@ -33,7 +33,7 @@ func (p *Param) ToString() string {
 		res.WriteString(fmt.Sprintf("$%d\r\n%s\r\n", len(p.value), p.value))
 	case num:
 		res.WriteString(fmt.Sprintf(":%s\r\n", p.value))
-	case err:
+	case err1:
 		res.WriteString(fmt.Sprintf("-%s\r\n", p.value))
 	}
 	return res.String()

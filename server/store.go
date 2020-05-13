@@ -49,3 +49,8 @@ func (s *Store) Get(request StoreRequest) {
 	}
 	request.responseChan <- StoreResponse{val, nil}
 }
+
+func (s *Store) Set(request StoreRequest) {
+	s.store[request.params[1].value] = request.params[2]
+	request.responseChan <- StoreResponse{Param{value: "OK", messageType: str}, nil}
+}
