@@ -37,10 +37,13 @@ func (s *Store) Start() {
 }
 
 func (s *Store) listen() {
-	select {
-	case req := <-s.IncomingRequests:
-		s.actionMap[req.action](req)
+	for {
+		select {
+		case req := <-s.IncomingRequests:
+			s.actionMap[req.action](req)
+		}
 	}
+
 }
 
 func (s *Store) Exists(command string) bool {
