@@ -8,9 +8,9 @@ type CommandHandler struct {
 }
 
 type commandForm struct {
-	commandFunc func(req Request)
-	request     Request
-	response    chan string
+	commandFunc  func(req Request)
+	request      Request
+	responseChan chan string
 }
 
 func CreateCommandHandler() CommandHandler {
@@ -28,13 +28,16 @@ func (ch *CommandHandler) Start() {
 	go ch.process()
 }
 
-func (ch *CommandHandler) AppendRequest(req Request) error {
+func (ch *CommandHandler) AppendRequest(req Request) {
 	handlerFunc, ok := ch.commandMap[req.action]
 	if !ok {
-		return ErrCommandNotFound{command: req.action}
+		req.client.WriteError(ErrCommandNotFound{command: req.action})
 	}
-	cmdForm := commandForm{commandFunc: handlerFunc, request: req}
-
+	responseChan := make(chan string)
+	cmdForm := commandForm{commandFunc: handlerFunc, request: req, responseChan: responseChan}
+	ch.incomingRequests <- cmdForm
+	response := <-cmdForm.responseChan
+	req.client.write([]byte(response))
 }
 
 func (ch *CommandHandler) process() {

@@ -59,5 +59,11 @@ func (e ErrCommandNotFound) Error() string {
 type ErrKeyNotFound struct{ key string }
 
 func (e ErrKeyNotFound) Error() string {
-	return fmt.Sprintf("The key ")
+	return fmt.Sprintf("The key %s was not found", e.key)
+}
+
+type ErrIncompleteWrite struct{ expected, written int }
+
+func (e ErrIncompleteWrite) Error() string {
+	return fmt.Sprintf("Incomplete write. Written %d out of %d bytes", e.written, e.written)
 }

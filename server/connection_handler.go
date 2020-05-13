@@ -20,6 +20,7 @@ func CreateClient(conn net.Conn) Client {
 		mutex:  sync.Mutex{},
 		logger: log.WithField("address", conn.RemoteAddr().String()),
 	}
+	client.logger.Info("new client created")
 	return client
 }
 
@@ -36,9 +37,20 @@ func (c *Client) DisconnectWithError(err error) {
 }
 
 func (c *Client) WriteError(err error) {
-	c.logger.Info("new connection established")
 	_, err = c.conn.Write([]byte(err.Error()))
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
+	}
+}
+
+func (c *Client) write(data []byte) {
+	c.mutex.Lock()
+	written, err := c.conn.Write(data)
+	c.mutex.Unlock()
+	if len(data) != written {
+		c.logger.WithError(ErrIncompleteWrite{written: written, expected: len(data)})
+	}
+	if err != nil {
+		c.logger.WithError(err).Error("failed to write error to client")
 	}
 }

@@ -41,15 +41,14 @@ func (s *Server) listen() {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-
 	client := CreateClient(conn)
 	var err error = nil
 	var req Request
 	for err == nil {
 		req, err = s.reqParser.ConstructRequest(client.reader)
 		if err != nil {
-			err = s.cmdHandler.AppendRequest(req)
-			client.WriteError(err)
+			req.client = client
+			go s.cmdHandler.AppendRequest(req)
 		}
 	}
 	client.DisconnectWithError(err)
