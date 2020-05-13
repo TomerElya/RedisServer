@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	str = '+'
-	num = ':'
-	blk = '$'
-	arr = '*'
-	err = '-'
+	str  = '+'
+	num  = ':'
+	blk  = '$'
+	arr  = '*'
+	err1 = '-'
 )
 
 type Param struct {

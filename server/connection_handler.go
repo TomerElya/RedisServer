@@ -47,24 +47,22 @@ func (c *Client) Disconnect(err error) {
 }
 
 func (c *Client) WriteError(err error) {
-	err = c.write(err.Error())
+	param := Param{value: err.Error(), messageType: err1}
+	err = c.write(param)
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
 	}
 }
 
-func (c *Client) write(data string) error {
+func (c *Client) write(param Param) error {
 	if atomic.LoadInt32(&c.isConnected) != 0 {
 		return ErrConnectionClosedWrite{}
 	}
-	param := Param{value: data, messageType: str}
 	c.mutex.Lock()
 	written, err := c.conn.Write(param.ToBytes())
 	c.mutex.Unlock()
-	if len(data) != written {
-		c.logger.WithError(ErrIncompleteWrite{written: written, expected: len(data)})
+	if len(param.value) != written {
+		return ErrIncompleteWrite{written: written, expected: len(param.value)}
 	}
-	if err != nil {
-		c.logger.WithError(err).Error("failed to write error to client")
-	}
+	return err
 }
