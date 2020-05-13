@@ -3,8 +3,8 @@ package server
 type CommandHandler struct {
 	incomingRequests chan commandForm
 	stopChan         chan bool
-	store
-	commandMap map[string]func(req Request)
+	store            Store
+	commandMap       map[string]func(req Request)
 }
 
 type commandForm struct {
@@ -14,7 +14,11 @@ type commandForm struct {
 }
 
 func CreateCommandHandler() CommandHandler {
-	cmdHandler := CommandHandler{incomingRequests: make(chan commandForm)}
+	cmdHandler := CommandHandler{
+		incomingRequests: make(chan commandForm),
+		stopChan:         make(chan bool), store: CreateStore(),
+	}
+	cmdHandler.initializeCommandMap()
 	return cmdHandler
 }
 
@@ -22,10 +26,6 @@ func (ch *CommandHandler) initializeCommandMap() {
 	ch.commandMap = map[string]func(req Request){
 		"get": ch.handleGet,
 	}
-}
-
-func (ch *CommandHandler) Start() {
-	go ch.process()
 }
 
 func (ch *CommandHandler) AppendRequest(req Request) {
@@ -41,15 +41,6 @@ func (ch *CommandHandler) AppendRequest(req Request) {
 	req.client.write([]byte(response))
 }
 
-func (ch *CommandHandler) process() {
-	select {
-	case cmdForm := <-ch.incomingRequests:
-		cmdForm.commandFunc(cmdForm.request)
-	case <-ch.stopChan:
-		break
-	}
-}
-
 func (ch *CommandHandler) handleGet(req Request) {
-	value, ok := ch.store
+	value, err := ch.store.Get(req.params[1].value)
 }
