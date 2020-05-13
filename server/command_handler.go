@@ -32,6 +32,7 @@ func (ch *CommandHandler) AppendRequest(req Request) {
 	handlerFunc, ok := ch.commandMap[req.action]
 	if !ok {
 		req.client.WriteError(ErrCommandNotFound{command: req.action})
+		return
 	}
 	responseChan := make(chan string)
 	cmdForm := commandForm{commandFunc: handlerFunc, request: req, responseChan: responseChan}
