@@ -42,5 +42,12 @@ func (ch *CommandHandler) AppendRequest(req Request) {
 }
 
 func (ch *CommandHandler) handleGet(req Request) {
-	value, err := ch.store.Get(req.params[1].value)
+	storeRequest := StoreRequest{responseChan: make(chan StoreResponse), Request: req}
+	ch.store.IncomingRequests <- storeRequest
+	storeResponse := <-storeRequest.responseChan
+	if storeResponse.error != nil {
+		req.client.WriteError(storeResponse.error)
+	} else {
+
+	}
 }

@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net"
 	"sync"
 )
@@ -25,10 +26,14 @@ func CreateClient(conn net.Conn) Client {
 }
 
 func (c *Client) DisconnectWithError(err error) {
-	c.logger.WithError(err).Error("error received while listening to connection. Disconnecting...")
-	_, err = c.conn.Write([]byte(err.Error()))
-	if err != nil {
-		c.logger.WithError(err).Error("failed to write error to client while disconnecting")
+	if err == io.EOF {
+		c.logger.Info("client disconnected")
+	} else {
+		c.logger.WithError(err).Error("error received while listening to connection. Disconnecting...")
+		_, err = c.conn.Write([]byte(err.Error()))
+		if err != nil {
+			c.logger.WithError(err).Error("failed to write error to client while disconnecting")
+		}
 	}
 	err = c.conn.Close()
 	if err != nil {

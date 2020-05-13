@@ -2,7 +2,7 @@ package server
 
 import "bufio"
 
-func validateArrRequest(reqParam param) error {
+func validateArrRequest(reqParam Param) error {
 	if len(reqParam.chainedParams) < 1 {
 		return ErrArrayParsing{}
 	}
