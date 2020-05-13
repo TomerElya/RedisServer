@@ -38,3 +38,7 @@ func (p *Param) ToString() string {
 	}
 	return res.String()
 }
+
+func (p *Param) ToBytes() []byte {
+	return []byte(p.ToString())
+}

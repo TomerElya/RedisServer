@@ -45,7 +45,7 @@ func (s *Store) listen() {
 func (s *Store) Get(request StoreRequest) {
 	val, ok := s.store[request.params[1].value]
 	if !ok {
-		request.responseChan <- StoreResponse{Param{}, ErrKeyNotFound{}}
+		request.responseChan <- StoreResponse{Param{}, ErrKeyNotFound{key: request.params[1].value}}
 	}
 	request.responseChan <- StoreResponse{val, nil}
 }

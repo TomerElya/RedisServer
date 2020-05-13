@@ -67,3 +67,9 @@ type ErrIncompleteWrite struct{ expected, written int }
 func (e ErrIncompleteWrite) Error() string {
 	return fmt.Sprintf("Incomplete write. Written %d out of %d bytes", e.written, e.written)
 }
+
+type ErrConnectionClosedWrite struct{}
+
+func (e ErrConnectionClosedWrite) Error() string {
+	return fmt.Sprintf("error occurred when attempting to write to connection since it has already been closed")
+}

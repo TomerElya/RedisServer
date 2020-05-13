@@ -23,6 +23,7 @@ func CreateClient(conn net.Conn) Client {
 		mutex:       sync.Mutex{},
 		logger:      log.WithField("address", conn.RemoteAddr().String()),
 		isConnected: 0,
+		conn:        conn,
 	}
 	client.logger.Info("new client created")
 	return client
@@ -46,18 +47,19 @@ func (c *Client) Disconnect(err error) {
 }
 
 func (c *Client) WriteError(err error) {
-	if atomic.LoadInt32(&c.isConnected) != 0 {
-		c.logger.Warning("attempted to write error to client while the connection has already been closed")
-	}
-	_, err = c.conn.Write([]byte(err.Error()))
+	err = c.write(err.Error())
 	if err != nil {
 		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
 	}
 }
 
-func (c *Client) write(data []byte) {
+func (c *Client) write(data string) error {
+	if atomic.LoadInt32(&c.isConnected) != 0 {
+		return ErrConnectionClosedWrite{}
+	}
+	param := Param{value: data, messageType: str}
 	c.mutex.Lock()
-	written, err := c.conn.Write(data)
+	written, err := c.conn.Write(param.ToBytes())
 	c.mutex.Unlock()
 	if len(data) != written {
 		c.logger.WithError(ErrIncompleteWrite{written: written, expected: len(data)})
