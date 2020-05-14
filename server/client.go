@@ -38,6 +38,7 @@ func CreateClient(conn net.Conn, notifyDisconnect func(*Client)) Client {
 }
 
 func (c *Client) HandleConnection(appendRequest func(request Request)) {
+	go c.processRequests()
 	for {
 		select {
 		case req := <-c.reqChan:
@@ -60,11 +61,20 @@ func (c *Client) processRequests() {
 		}
 	}
 	if err != nil {
-		c.Disconnect(err)
+		c.DisconnectWithError(err)
 	}
 }
 
-func (c *Client) Disconnect(err error) {
+func (c *Client) Disconnect() {
+	c.logger.Info("disconnecting client")
+	err := c.conn.Close()
+	if err != nil {
+		c.logger.WithError(err).Error("error while trying to close connection")
+	}
+	c.notifyDisconnect(c)
+}
+
+func (c *Client) DisconnectWithError(err error) {
 	if err == io.EOF {
 		c.logger.Info("client disconnected")
 		atomic.StoreInt32(&c.isConnected, 1)

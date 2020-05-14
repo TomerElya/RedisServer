@@ -49,10 +49,28 @@ func (s *Server) run() {
 		case conn := <-s.acceptedConnections:
 			go s.handleConnection(conn)
 		case <-s.signalChannel:
-			log.Info("interrupt received from console, exiting...")
+			s.startShutDown()
 			return
 		}
 	}
+}
+
+func (s *Server) Stop() {
+	s.signalChannel <- os.Interrupt
+}
+
+func (s *Server) startShutDown() {
+	log.Info("interrupt received, starting shut down sequence")
+	s.cmdHandler.Stop()
+	s.disconnectClients()
+
+}
+
+func (s *Server) disconnectClients() {
+	for _, client := range s.clientSet {
+		client.Disconnect()
+	}
+	log.Info("all clients disconnected")
 }
 
 func (s *Server) listenForConnections() {
@@ -74,5 +92,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) onClientDisconnected(c *Client) {
+	log.WithField("address", c.Address).Info("erasing client from client set")
 	delete(s.clientSet, c.Address)
 }

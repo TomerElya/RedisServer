@@ -27,6 +27,11 @@ func (ch *CommandHandler) AppendRequest(req Request) {
 	}
 }
 
+func (ch *CommandHandler) Stop() {
+	log.Info("command handler received shut down interrupt")
+	ch.store.Stop()
+}
+
 func (ch *CommandHandler) handleRequest(req Request) {
 	storeRequest := StoreRequest{responseChan: make(chan StoreResponse), Request: req}
 	ch.store.IncomingRequests <- storeRequest
