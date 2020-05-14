@@ -70,6 +70,4 @@ func (s *Server) listenForConnections() {
 func (s *Server) handleConnection(conn net.Conn) {
 	client := CreateClient(conn)
 	go client.HandleConnection()
-
-	client.Disconnect(err)
 }

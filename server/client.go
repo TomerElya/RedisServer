@@ -14,6 +14,8 @@ type Client struct {
 	reader      *bufio.Reader
 	logger      *log.Entry
 	mutex       sync.Mutex
+	stopChan    chan interface{}
+	reqChan     chan Request
 	isConnected int32
 }
 
@@ -24,6 +26,8 @@ func CreateClient(conn net.Conn) Client {
 		logger:      log.WithField("address", conn.RemoteAddr().String()),
 		isConnected: 0,
 		conn:        conn,
+		stopChan:    make(chan interface{}),
+		reqChan:     make(chan Request),
 	}
 	client.logger.Info("new client created")
 	return client
@@ -37,6 +41,17 @@ func (c *Client) HandleConnection() {
 		if err == nil {
 			req.client = c
 			go s.cmdHandler.AppendRequest(req)
+		}
+	}
+}
+
+func (c *Client) listen() {
+	for {
+		select {
+		case req := <-c.reqChan:
+
+		case <-c.stopChan:
+			return
 		}
 	}
 }

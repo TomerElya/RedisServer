@@ -73,3 +73,9 @@ type ErrConnectionClosedWrite struct{}
 func (e ErrConnectionClosedWrite) Error() string {
 	return fmt.Sprintf("error occurred when attempting to write to connection since it has already been closed")
 }
+
+type ErrQueueFull struct{}
+
+func (e ErrQueueFull) Error() string {
+	return fmt.Sprintf("failed to push new item to the queue since it is full")
+}
