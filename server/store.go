@@ -1,9 +1,12 @@
 package server
 
+import log "github.com/sirupsen/logrus"
+
 type Store struct {
 	store            map[string]Param
 	actionMap        map[string]func(request StoreRequest)
 	IncomingRequests chan StoreRequest
+	StopChan         chan interface{}
 }
 
 type StoreResponse struct {
@@ -20,6 +23,7 @@ func CreateStore() Store {
 	store := Store{
 		store:            map[string]Param{},
 		IncomingRequests: make(chan StoreRequest),
+		StopChan:         make(chan interface{}),
 	}
 	store.initializeActionMap()
 	return store
@@ -41,6 +45,9 @@ func (s *Store) listen() {
 		select {
 		case req := <-s.IncomingRequests:
 			s.actionMap[req.action](req)
+		case <-s.StopChan:
+			log.Info("interrupt received, closing store...")
+			break
 		}
 	}
 }

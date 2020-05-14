@@ -4,39 +4,65 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"os"
+	"os/signal"
 )
 
 type Server struct {
-	address    string
-	port       int
-	listener   net.Listener
-	reqParser  RequestsParser
-	cmdHandler CommandHandler
+	address             string
+	port                int
+	listener            net.Listener
+	reqParser           RequestsParser
+	cmdHandler          CommandHandler
+	acceptedConnections chan net.Conn
+	signalChannel       chan os.Signal
 }
 
 func CreateServer(address string, port int) Server {
-	return Server{address: address, port: port, cmdHandler: CreateCommandHandler(), reqParser: createRequestParser()}
+	return Server{
+		address:             address,
+		port:                port,
+		cmdHandler:          CreateCommandHandler(),
+		reqParser:           createRequestParser(),
+		acceptedConnections: make(chan net.Conn),
+		signalChannel:       make(chan os.Signal),
+	}
 }
 
 func (s *Server) StartAndListen() {
 	address := fmt.Sprintf("%s:%d", s.address, s.port)
 	listener, err := net.Listen("tcp", address)
+	signal.Notify(s.signalChannel, os.Interrupt)
 	s.listener = listener
 	if err != nil {
 		log.WithError(err).WithField("address", address).Error("listener failed to start")
 		panic(err)
 	}
 	log.WithField("address", address).Info("listener successfully started")
-	s.listen()
+	go s.listenForConnections()
+	s.run()
 }
 
-func (s *Server) listen() {
+func (s *Server) run() {
+	for {
+		select {
+		case conn := <-s.acceptedConnections:
+			go s.handleConnection(conn)
+		case <-s.signalChannel:
+			log.Info("interrupt received from console, exiting...")
+		}
+	}
+}
+
+func (s *Server) listenForConnections() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
 			log.WithError(err).Error("failed receiving new connection")
+		} else {
+			s.acceptedConnections <- conn
 		}
-		go s.handleConnection(conn)
+
 	}
 }
 
