@@ -29,6 +29,18 @@ func CreateClient(conn net.Conn) Client {
 	return client
 }
 
+func (c *Client) HandleConnection() {
+	var err error = nil
+	var req Request
+	for err == nil {
+		req, err = ConstructRequest(c.reader)
+		if err == nil {
+			req.client = c
+			go s.cmdHandler.AppendRequest(req)
+		}
+	}
+}
+
 func (c *Client) Disconnect(err error) {
 	if err == io.EOF {
 		c.logger.Info("client disconnected")

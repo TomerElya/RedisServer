@@ -69,14 +69,7 @@ func (s *Server) listenForConnections() {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	client := CreateClient(conn)
-	var err error = nil
-	var req Request
-	for err == nil {
-		req, err = s.reqParser.ConstructRequest(client.reader)
-		if err == nil {
-			req.client = client
-			go s.cmdHandler.AppendRequest(req)
-		}
-	}
+	go client.HandleConnection()
+
 	client.Disconnect(err)
 }

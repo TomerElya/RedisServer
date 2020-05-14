@@ -6,31 +6,19 @@ import (
 	"strings"
 )
 
-type RequestsParser struct {
-	parserMap map[byte]func(reader *bufio.Reader) (Param, error)
+var parserMap = map[byte]func(reader *bufio.Reader) (Param, error){
+	str: parseStr,
+	num: parseNum,
+	blk: parseBlk,
+	arr: parseArr,
 }
 
-func createRequestParser() RequestsParser {
-	ch := RequestsParser{}
-	ch.initParserMap()
-	return ch
-}
-
-func (ch *RequestsParser) initParserMap() {
-	ch.parserMap = map[byte]func(reader *bufio.Reader) (Param, error){
-		str: ch.parseStr,
-		num: ch.parseNum,
-		blk: ch.parseBlk,
-		arr: ch.parseArr,
-	}
-}
-
-func (ch *RequestsParser) ConstructRequest(reader *bufio.Reader) (Request, error) {
+func ConstructRequest(reader *bufio.Reader) (Request, error) {
 	messageType, err := reader.ReadByte()
 	if err != nil {
 		return Request{}, err
 	}
-	parsingFunction, err := ch.getParsingFunction(messageType)
+	parsingFunction, err := getParsingFunction(messageType)
 	if err != nil {
 		return Request{}, err
 	}
@@ -38,10 +26,10 @@ func (ch *RequestsParser) ConstructRequest(reader *bufio.Reader) (Request, error
 	if err != nil {
 		return Request{}, err
 	}
-	return ch.initializeRequest(Param)
+	return initializeRequest(Param)
 }
 
-func (ch *RequestsParser) initializeRequest(reqParam Param) (Request, error) {
+func initializeRequest(reqParam Param) (Request, error) {
 	var resultedRequest Request
 	switch reqParam.messageType {
 	case arr:
@@ -60,7 +48,7 @@ func (ch *RequestsParser) initializeRequest(reqParam Param) (Request, error) {
 	return resultedRequest, nil
 }
 
-func (ch *RequestsParser) parseStr(reader *bufio.Reader) (Param, error) {
+func parseStr(reader *bufio.Reader) (Param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
 		return Param{}, err
@@ -71,7 +59,7 @@ func (ch *RequestsParser) parseStr(reader *bufio.Reader) (Param, error) {
 	return Param{value: string(data), messageType: str}, nil
 }
 
-func (ch *RequestsParser) parseNum(reader *bufio.Reader) (Param, error) {
+func parseNum(reader *bufio.Reader) (Param, error) {
 	data, err := reader.ReadBytes('\r')
 	if err != nil {
 		return Param{}, err
@@ -87,7 +75,7 @@ func (ch *RequestsParser) parseNum(reader *bufio.Reader) (Param, error) {
 	return Param{value: stringData, messageType: num}, nil
 }
 
-func (ch *RequestsParser) parseBlk(reader *bufio.Reader) (Param, error) {
+func parseBlk(reader *bufio.Reader) (Param, error) {
 	length, err := extractNumber(reader)
 	str := make([]byte, length)
 	read, err := reader.Read(str)
@@ -102,7 +90,7 @@ func (ch *RequestsParser) parseBlk(reader *bufio.Reader) (Param, error) {
 	return Param{value: string(str), messageType: blk}, nil
 }
 
-func (ch *RequestsParser) parseArr(reader *bufio.Reader) (Param, error) {
+func parseArr(reader *bufio.Reader) (Param, error) {
 	arrSize, err := extractNumber(reader)
 	if err != nil {
 		return Param{}, err
@@ -113,7 +101,7 @@ func (ch *RequestsParser) parseArr(reader *bufio.Reader) (Param, error) {
 		if err != nil {
 			return Param{}, err
 		}
-		parsingFunction, err := ch.getParsingFunction(messageType)
+		parsingFunction, err := getParsingFunction(messageType)
 		if err != nil {
 			return Param{}, err
 		}
@@ -139,8 +127,8 @@ func extractNumber(reader *bufio.Reader) (int, error) {
 	return length, validateLF(reader)
 }
 
-func (ch *RequestsParser) getParsingFunction(messageType byte) (func(reader *bufio.Reader) (Param, error), error) {
-	if function, ok := ch.parserMap[messageType]; !ok {
+func getParsingFunction(messageType byte) (func(reader *bufio.Reader) (Param, error), error) {
+	if function, ok := parserMap[messageType]; !ok {
 		return nil, ErrUnknownMessageType{}
 	} else {
 		return function, nil
