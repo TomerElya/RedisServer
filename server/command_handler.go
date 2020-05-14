@@ -23,7 +23,7 @@ func (ch *CommandHandler) AppendRequest(req Request) {
 	if !ok {
 		req.client.WriteError(ErrCommandNotFound{command: req.action})
 	} else {
-		ch.handleRequest(req)
+		go ch.handleRequest(req)
 	}
 }
 

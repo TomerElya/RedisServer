@@ -77,5 +77,5 @@ func (e ErrConnectionClosedWrite) Error() string {
 type ErrQueueFull struct{}
 
 func (e ErrQueueFull) Error() string {
-	return fmt.Sprintf("failed to push new item to the queue since it is full")
+	return fmt.Sprintf("failed to push new request to request queue since it is full")
 }

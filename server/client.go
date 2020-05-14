@@ -33,25 +33,26 @@ func CreateClient(conn net.Conn) Client {
 	return client
 }
 
-func (c *Client) HandleConnection() {
-	var err error = nil
-	var req Request
-	for err == nil {
-		req, err = ConstructRequest(c.reader)
-		if err == nil {
-			req.client = c
-			go s.cmdHandler.AppendRequest(req)
+func (c *Client) HandleConnection(appendRequest func(request Request)) {
+	for {
+		select {
+		case req := <-c.reqChan:
+			appendRequest(req)
+		case <-c.stopChan:
+			atomic.StoreInt32(&c.isConnected, 1)
+			return
 		}
 	}
 }
 
-func (c *Client) listen() {
-	for {
-		select {
-		case req := <-c.reqChan:
-
-		case <-c.stopChan:
-			return
+func (c *Client) processRequests() {
+	var err error = nil
+	var req Request
+	for err == nil && atomic.LoadInt32(&c.isConnected) == 0 {
+		req, err = ConstructRequest(c.reader)
+		if err == nil {
+			req.client = c
+			c.reqChan <- req
 		}
 	}
 }
@@ -76,9 +77,9 @@ func (c *Client) Disconnect(err error) {
 func (c *Client) WriteError(err error) {
 	param := Param{messageType: err1, value: err.Error()}
 	c.logger.WithError(err).Info("writing error to client")
-	err = c.write(param)
+	writeErr := c.write(param)
 	if err != nil {
-		c.logger.WithError(err).WithField("error", err).Error("failed to write error to client")
+		c.logger.WithError(writeErr).WithField("error", err).Error("failed to write error to client")
 	}
 }
 

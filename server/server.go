@@ -12,7 +12,6 @@ type Server struct {
 	address             string
 	port                int
 	listener            net.Listener
-	reqParser           RequestsParser
 	cmdHandler          CommandHandler
 	acceptedConnections chan net.Conn
 	signalChannel       chan os.Signal
@@ -23,7 +22,6 @@ func CreateServer(address string, port int) Server {
 		address:             address,
 		port:                port,
 		cmdHandler:          CreateCommandHandler(),
-		reqParser:           createRequestParser(),
 		acceptedConnections: make(chan net.Conn),
 		signalChannel:       make(chan os.Signal),
 	}
@@ -69,5 +67,5 @@ func (s *Server) listenForConnections() {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	client := CreateClient(conn)
-	go client.HandleConnection()
+	go client.HandleConnection(s.cmdHandler.AppendRequest)
 }
