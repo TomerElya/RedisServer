@@ -50,10 +50,18 @@ func (s *Store) listen() {
 		case req := <-s.IncomingRequests:
 			s.actionMap[req.action](req)
 		case <-s.StopChan:
-			log.Info("interrupt received, closing store...")
-			break
+			s.handleInterrupt()
+			return
 		}
 	}
+}
+
+func (s *Store) handleInterrupt() {
+	log.Info("store received interrupt")
+	for req := range s.IncomingRequests {
+		s.actionMap[req.action](req)
+	}
+	log.Info("all left requests are handled, closing...")
 }
 
 func (s *Store) Exists(command string) bool {

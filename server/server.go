@@ -15,6 +15,7 @@ type Server struct {
 	cmdHandler          CommandHandler
 	acceptedConnections chan net.Conn
 	signalChannel       chan os.Signal
+	clientSet           map[string]Client
 }
 
 func CreateServer(address string, port int) Server {
@@ -24,6 +25,7 @@ func CreateServer(address string, port int) Server {
 		cmdHandler:          CreateCommandHandler(),
 		acceptedConnections: make(chan net.Conn),
 		signalChannel:       make(chan os.Signal),
+		clientSet:           make(map[string]Client),
 	}
 }
 
@@ -66,6 +68,11 @@ func (s *Server) listenForConnections() {
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
-	client := CreateClient(conn)
+	client := CreateClient(conn, s.onClientDisconnected)
+	s.clientSet[client.Address] = client
 	go client.HandleConnection(s.cmdHandler.AppendRequest)
+}
+
+func (s *Server) onClientDisconnected(c *Client) {
+	delete(s.clientSet, c.Address)
 }

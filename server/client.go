@@ -10,26 +10,30 @@ import (
 )
 
 type Client struct {
-	conn        net.Conn
-	reader      *bufio.Reader
-	logger      *log.Entry
-	mutex       sync.Mutex
-	stopChan    chan interface{}
-	reqChan     chan Request
-	isConnected int32
+	Address          string
+	conn             net.Conn
+	reader           *bufio.Reader
+	logger           *log.Entry
+	mutex            sync.Mutex
+	stopChan         chan interface{}
+	reqChan          chan Request
+	isConnected      int32
+	notifyDisconnect func(*Client)
 }
 
-func CreateClient(conn net.Conn) Client {
+func CreateClient(conn net.Conn, notifyDisconnect func(*Client)) Client {
 	client := Client{
-		reader:      bufio.NewReader(conn),
-		mutex:       sync.Mutex{},
-		logger:      log.WithField("address", conn.RemoteAddr().String()),
-		isConnected: 0,
-		conn:        conn,
-		stopChan:    make(chan interface{}),
-		reqChan:     make(chan Request),
+		Address:          conn.RemoteAddr().String(),
+		reader:           bufio.NewReader(conn),
+		mutex:            sync.Mutex{},
+		logger:           log.WithField("address", conn.RemoteAddr().String()),
+		isConnected:      0,
+		conn:             conn,
+		stopChan:         make(chan interface{}),
+		reqChan:          make(chan Request),
+		notifyDisconnect: notifyDisconnect,
 	}
-	client.logger.Info("new client created")
+	client.logger.Info("new client connected")
 	return client
 }
 
@@ -55,6 +59,9 @@ func (c *Client) processRequests() {
 			c.reqChan <- req
 		}
 	}
+	if err != nil {
+		c.Disconnect(err)
+	}
 }
 
 func (c *Client) Disconnect(err error) {
@@ -72,6 +79,7 @@ func (c *Client) Disconnect(err error) {
 			c.logger.WithError(err).Error("error while trying to close connection")
 		}
 	}
+	c.notifyDisconnect(c)
 }
 
 func (c *Client) WriteError(err error) {

@@ -6,11 +6,15 @@ import (
 	"strings"
 )
 
-var parserMap = map[byte]func(reader *bufio.Reader) (Param, error){
-	str: parseStr,
-	num: parseNum,
-	blk: parseBlk,
-	arr: parseArr,
+var parserMap map[byte]func(reader *bufio.Reader) (Param, error)
+
+func init() {
+	parserMap = map[byte]func(reader *bufio.Reader) (Param, error){
+		str: parseStr,
+		num: parseNum,
+		blk: parseBlk,
+		arr: parseArr,
+	}
 }
 
 func ConstructRequest(reader *bufio.Reader) (Request, error) {
@@ -18,9 +22,9 @@ func ConstructRequest(reader *bufio.Reader) (Request, error) {
 	if err != nil {
 		return Request{}, err
 	}
-	parsingFunction, err := getParsingFunction(messageType)
-	if err != nil {
-		return Request{}, err
+	parsingFunction, ok := parserMap[messageType]
+	if !ok {
+		return Request{}, ErrUnknownMessageType{}
 	}
 	Param, err := parsingFunction(reader)
 	if err != nil {
@@ -101,9 +105,9 @@ func parseArr(reader *bufio.Reader) (Param, error) {
 		if err != nil {
 			return Param{}, err
 		}
-		parsingFunction, err := getParsingFunction(messageType)
-		if err != nil {
-			return Param{}, err
+		parsingFunction, ok := parserMap[messageType]
+		if !ok {
+			return Param{}, ErrUnknownMessageType{}
 		}
 		newParam, err := parsingFunction(reader)
 		if err != nil {
@@ -125,12 +129,4 @@ func extractNumber(reader *bufio.Reader) (int, error) {
 		return 0, ErrArrayLengthExtraction{err}
 	}
 	return length, validateLF(reader)
-}
-
-func getParsingFunction(messageType byte) (func(reader *bufio.Reader) (Param, error), error) {
-	if function, ok := parserMap[messageType]; !ok {
-		return nil, ErrUnknownMessageType{}
-	} else {
-		return function, nil
-	}
 }
