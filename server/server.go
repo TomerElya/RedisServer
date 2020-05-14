@@ -50,6 +50,7 @@ func (s *Server) run() {
 			go s.handleConnection(conn)
 		case <-s.signalChannel:
 			log.Info("interrupt received from console, exiting...")
+			return
 		}
 	}
 }

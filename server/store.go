@@ -40,6 +40,10 @@ func (s *Store) Start() {
 	go s.listen()
 }
 
+func (s *Store) Stop() {
+	s.StopChan <- 0
+}
+
 func (s *Store) listen() {
 	for {
 		select {
